@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Ödev</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+<script>
+function Gonder(){
+ var postObject={Name:"",City:"",Category:""};
+ 
+ postObject["Name"]=$("#isim").val();
+ postObject["City"]=$("#city").val();
+ postObject["Category"]=$("#category").val();
+ console.log(postObject);
+ console.log(JSON.stringify(postObject));
+ $.ajax({
+        url: "/api/addData",
+        type: "post",
+        data: JSON.stringify(postObject) ,
+		 
+		headers: {
+		 "Content-Type": "text/plain"
+		},
+        
+		success: function (response) {
+			 
+			document.getElementById("result-table").innerHTML="";
+			 for(i=0;i<response.length;i++){
+				var tr = document.createElement('tr');
+				
+				var tdScore = tr.appendChild(document.createElement('td'));
+				tdScore.innerHTML = response[i].Score;
+				
+				var tdName = tr.appendChild(document.createElement('td'));
+				tdName.innerHTML = response[i].Name;
+				
+				var tdCity = tr.appendChild(document.createElement('td'));
+				tdCity.innerHTML = response[i].City;
+				
+				var tdCategory = tr.appendChild(document.createElement('td'));
+				tdCategory.innerHTML = response[i].Category;
+				
+				document.getElementById("result-table").appendChild(tr);
+			 }
+
+			 $("#form-sayfasi").hide();
+			 $("#result").show();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+           console.log(textStatus, errorThrown);
+        }
+    });
+return true;
+}
+
+function Geri(){
+		$("#form-sayfasi").show();
+		$("#result").hide();
+}
+</script>
+</head>
+<body>
+
+<div id="form-sayfasi" class="container">
+<div class="row justify-content-start" >
+	<div class="col-md-5 " style="float: none;margin: 0 auto;" >
+ <h2>Kayıt</h2>
+  <form>
+    <div class="form-group">
+      <label for="isim">İsim:</label>
+      <input type="text" class="form-control" id="isim" placeholder="İsim" name="isim">
+    </div>
+	
+	<div class="form-group">
+      <label>Şehir:</label>
+	   <select class="form-control" id="city">
+		<option>San Francisco</option>
+		<option>Paris</option>
+		<option>Tokyo</option>
+		<option>London</option>
+		<option>Istanbul</option>
+	  </select>
+    </div>
+	
+   	<div class="form-group">
+      <label>Kategori:</label>
+	   <select class="form-control" id="category">
+		<option>Music</option>
+		<option>Sports</option>
+		<option>Movies</option>
+		<option>Gaming</option>
+		<option>Books</option>
+	  </select>
+    </div>
+  
+    <button type="button" class="btn btn-default" onclick="Gonder()">Submit</button>
+  </form>
+	</div>
+</div>
+</div>	
+
+<div id="result" style="display:none;">
+
+	<div class="container">
+		 
+		<div class="row" >
+			<div class="col-md-1">
+				<button type="button" onclick="Geri()" class="btn btn-primary">Geri</button>
+			</div>
+				<div class="col-md-5" style="float: none;margin: 0 auto;"  >
+				<table class="table">
+	  <thead class="thead-dark">
+		<tr>
+		  <th scope="col">Matching Scor</th>
+		  <th scope="col">Name</th>
+		  <th scope="col">Category </th>
+		  <th scope="col">City</th>
+		</tr>
+	  </thead>
+	  
+	  <tbody id="result-table">
+		 
+	  </tbody>
+	</table>
+				</div>
+		</div>
+	</div>
+	 
+</div>
+
+
+</body>
+</html>

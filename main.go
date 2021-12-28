@@ -5,10 +5,12 @@ import (
 	"net/http"
 	"encoding/json"
 	"log"
+	"os"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/bson"
+	"github.com/joho/godotenv"
 )
 
 type Data struct {
@@ -26,7 +28,9 @@ type ScoreData struct {
 
 func ConnectDB() *mongo.Collection {
 
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	dbString := os.Getenv("DB")
+	log.Println("ENV-DB :"+dbString)
+	clientOptions := options.Client().ApplyURI(dbString)
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		 log.Fatal(err)
@@ -61,7 +65,24 @@ func _getData () []Data{
 	return veriler
 }
 
+func homePage(w http.ResponseWriter, r *http.Request) {
+	log.Println("handl call homePage")
+	path := r.URL.Path
+
+	if path == "/"{
+
+		path = "./index.html"
+	}else{
+
+		path = "."+path
+	}
+
+	http.ServeFile(w,r,path)
+ 
+}
+
 func getData(w http.ResponseWriter, r *http.Request) {
+	log.Println("handl call getData")
 	w.Header().Add("Content-Type", "application/json")
 
 	var veriler []Data
@@ -72,14 +93,16 @@ func getData(w http.ResponseWriter, r *http.Request) {
 }
 
 func addData(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=ascii")
+	log.Println("handl call addData")
+	w.Header().Set("Content-Type", "application/json")
     var veri Data
 	var verilerSonuc []ScoreData
 	var verilerDb []Data
 
 	_ = json.NewDecoder(r.Body).Decode(&veri)
+
+	log.Println(veri)
 	verilerDb = _getData()
-	
 	for  _,_veri := range verilerDb {
 		var Vsonuc ScoreData
 		Vsonuc.Name = _veri.Name
@@ -98,6 +121,7 @@ func addData(w http.ResponseWriter, r *http.Request) {
 
 		verilerSonuc = append(verilerSonuc,Vsonuc)
 	}
+
 	result, err := ConnectDB().InsertOne(context.TODO(), veri)
 	if err != nil {
 		log.Fatal(err)
@@ -108,13 +132,22 @@ func addData(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	log.Println("App start")
+	err := godotenv.Load(".env")
+	
+	log.Println("App start")
+	if err != nil {
+	  log.Fatalf("Error loading .env file")
+	}
 
 	r := mux.NewRouter()
-
+	port := os.Getenv("PORT")
+	log.Println("ENV-PORT :"+port)
 	r.HandleFunc("/api/getData", getData).Methods("GET")
+	r.HandleFunc("/", homePage).Methods("GET")
 	
 	r.HandleFunc("/api/addData", addData).Methods("POST")
 
-	http.ListenAndServe(":4000", r)
+	http.ListenAndServe(":"+port, r)
 
 }
